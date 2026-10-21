@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Operação Risco Zero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;600;700&family=Allerta+Stencil&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#15181b; --panel:#20262b; --panel2:#0d0f11; --steel:#3a444c; --text:#F2F0E6; --muted:#A9B2B8;
+  --yellow:#FFC400; --green:#00A15C; --green2:#12C271; --red:#D62828; --red2:#A61E1E;
+  --orange:#FF7A00; --blue:#0A63C9; --purple:#7B3FA0; --teal:#0C9CA8;
+  --hazard:repeating-linear-gradient(-45deg,#FFC400 0 14px,#121212 14px 28px);
+  --display:'Allerta Stencil','Arial Narrow',sans-serif;
+  --body:'Barlow Semi Condensed','Segoe UI',Helvetica,Arial,sans-serif;
+  padding-top: env(safe-area-inset-top,0px); padding-bottom: env(safe-area-inset-bottom,0px); box-sizing:border-box;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top: env(safe-area-inset-top,0px); height:100%;}
+html,body{height:100%;}
+body{margin:0; min-height:100%; color:var(--text); font-family:var(--body); font-size:17px;
+  background-color:var(--bg);
+  background-image:radial-gradient(ellipse at 50% -10%,#2b343c,transparent 65%),
+    repeating-linear-gradient(0deg,transparent 0 39px,rgba(255,255,255,.035) 39px 40px),
+    repeating-linear-gradient(90deg,transparent 0 39px,rgba(255,255,255,.035) 39px 40px);
+  background-attachment:fixed;}
+#app{min-height:100%; height:100%;}
+.screen{min-height:100vh; padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px)) 20px;}
+.center{display:flex; align-items:center; justify-content:center; min-height:90vh;}
+button:focus-visible,input:focus-visible,.risk-card:focus-visible,.sol-card:focus-visible{outline:3px solid #fff; outline-offset:2px;}
+
+.card-box{position:relative; z-index:2; background:rgba(22,26,30,.94); border:4px solid #000; outline:3px solid var(--yellow); outline-offset:-10px;
+  border-radius:12px; padding:38px 36px; max-width:540px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.6);}
+h1.title{font-family:var(--display); color:var(--yellow); font-size:2.3rem; line-height:1.12; margin:0 0 10px; text-align:center; letter-spacing:2px; text-shadow:2px 2px 0 rgba(0,0,0,.4);}
+.subtitle{color:var(--muted); text-align:center; margin:0 0 18px; font-size:1.05rem;}
+.board{display:flex; align-items:center; justify-content:center; gap:10px; background:var(--green); color:#fff; font-weight:700; border:3px solid #fff; border-radius:8px; padding:6px 14px; margin:0 auto 20px; width:max-content; max-width:100%;}
+.board b{font-family:var(--display); font-size:1.8rem; background:#fff; color:var(--green); padding:0 10px; border-radius:4px; line-height:1.3;}
+label.field-label{font-weight:600; display:block; margin:14px 0 10px; text-align:center;}
+.radio-row{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+.radio-row button{background:var(--steel); color:var(--text); font-family:var(--body); font-size:1rem; padding:10px 14px; border-radius:6px; cursor:pointer; border:3px solid #000; font-weight:600; text-align:center;}
+.radio-row button.checked{background:var(--yellow); color:#111; border-color:#000;}
+.btn{border:none; border-bottom:4px solid rgba(0,0,0,.45); border-radius:6px; padding:12px 20px; font-family:var(--body); font-weight:600; cursor:pointer; font-size:1.02rem; color:#fff; transition:transform .08s, filter .15s;}
+.btn:hover{filter:brightness(1.12);} .btn:active{transform:translateY(3px); border-bottom-width:1px;}
+.btn-green{background:var(--green);} .btn-outline{background:#111; color:var(--yellow); border:2px solid var(--yellow); border-bottom-width:4px;}
+.btn-red{background:var(--red);} .btn-gray{background:var(--teal);} .btn-blue{background:var(--blue);}
+.actions-box{display:flex; gap:10px; justify-content:center; margin-top:24px; flex-wrap:wrap;}
+.snd-hint{text-align:center; color:var(--muted); font-size:.9rem; margin:14px 0 0;}
+.name-row{display:flex; align-items:center; gap:8px; margin:8px 0;}
+.name-row span{width:100px; font-weight:700;}
+.name-row input{flex:1; padding:9px; border-radius:5px; border:3px solid #000; background:#eee; font-family:var(--body); font-size:1rem;}
+
+/* Tela inicial */
+.home{position:relative; overflow:hidden;}
+.tape{position:absolute; left:0; right:0; height:22px; background:var(--hazard); z-index:3; box-shadow:0 0 12px rgba(0,0,0,.6);}
+.tape.top{top:0;} .tape.bottom{bottom:0;}
+.screen.home{min-height:100vh; min-height:100dvh;}
+.skyline{position:absolute; left:0; bottom:22px; width:100%; height:72vh; z-index:1; overflow:visible;}
+.beacon{animation:beacon 1s steps(2) infinite;}
+.puff{fill:#9aa4ab; opacity:0; transform-box:fill-box; transform-origin:center; animation:puff var(--d,8s) linear infinite; animation-delay:var(--dl,0s);}
+
+@keyframes beacon{50%{opacity:.15}}
+@keyframes puff{0%{transform:translate(0,0) scale(.5); opacity:0}12%{opacity:.55}60%{opacity:.3}100%{transform:translate(var(--dx,50px),-200px) scale(3.2); opacity:0}}
+
+.manual-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px; flex-wrap:wrap;}
+.manual-text{background:var(--panel); border:3px solid #000; border-left:12px solid var(--yellow); border-radius:8px; padding:22px; white-space:pre-wrap; line-height:1.55; max-height:80vh; overflow-y:auto; font-size:1rem;}
+
+/* Jogo */
+.game-screen{display:flex; flex-direction:column; height:auto; min-height:100vh; min-height:100dvh;}
+.topbar{background:var(--panel2); padding:12px 24px; display:flex; align-items:center; flex-wrap:wrap; gap:8px 22px; flex:0 0 auto; padding-top:calc(12px + env(safe-area-inset-top,0px));}
+.topbar .lives{font-weight:700; display:flex; align-items:center; gap:4px;}
+.wtri{width:30px; height:27px; display:block; overflow:visible;}
+.wtri .tb{fill:#262d32; stroke:#5b6770; stroke-width:2.5; stroke-linejoin:round;} .wtri .tm{fill:#5b6770;}
+.wtri.on{filter:drop-shadow(0 0 7px rgba(255,196,0,.85));} .wtri.on .tb{fill:var(--yellow); stroke:#000;} .wtri.on .tm{fill:#111;}
+.wtri.fresh{animation:wlit .8s ease-out;}
+@keyframes wlit{0%{transform:scale(.4)}50%{transform:scale(1.4); filter:drop-shadow(0 0 16px #fff)}100%{transform:scale(1)}}
+.topbar .deck{color:var(--muted);}
+.topbar .timer{font-family:var(--display); font-size:1.25rem; letter-spacing:1px;}
+.topbar .spacer{flex:1;}
+.topbar .role{background:var(--blue); color:#fff; font-weight:700; padding:3px 12px; border-radius:4px 14px 4px 14px; border:2px solid #000; transition:background .3s;}
+.topbar .role.EPI{background:var(--orange);} .topbar .role.TREINAMENTO{background:var(--blue);} .topbar .role.ENGENHARIA{background:var(--green);} .topbar .role.CORINGA{background:var(--purple);}
+.topbar .turn{color:var(--yellow); font-family:var(--display); font-size:1.2rem;}
+.hazard-bar{height:10px; background:var(--hazard); flex:0 0 auto;}
+.timer-track{height:7px; background:#000; flex:0 0 auto;} .timer-fill{height:100%; width:100%; background:#2ECC71; transition:width .95s linear, background .3s;}
+.game-section{flex:1 1 0; display:flex; flex-direction:column; min-height:0; padding:10px 24px;}
+.section-title{color:#111; background:var(--yellow); font-family:var(--display); border:3px solid #000; border-radius:4px; padding:4px 16px; margin-bottom:10px; font-size:1rem; align-self:center; letter-spacing:.5px;}
+.factory-section{min-height:250px;} .hand-section{flex:0 0 auto;}
+.cards-row.factory-row{flex-wrap:nowrap; justify-content:flex-start; align-items:center; overflow:visible; padding:12px 10px 10px; min-height:0;}
+.factory-row>.risk-card:first-child{margin-left:auto;} .factory-row>.risk-card:last-child{margin-right:auto;}
+@media (min-width:901px){ .factory-row>.risk-card{min-width:140px;} }
+.cards-row{flex:1; display:flex; gap:22px; flex-wrap:wrap; align-items:center; justify-content:center; align-content:center; overflow-y:auto; padding:10px 0;}
+
+.risk-card{position:relative; background:linear-gradient(#FFD43B,#FFC400); color:#111; border:4px solid #000; outline:3px solid var(--yellow); outline-offset:0; border-radius:10px;
+  padding:12px 12px 10px; width:auto; height:100%; max-height:290px; min-height:0; min-width:190px; flex:1 1 0; max-width:270px; align-self:center; overflow-x:hidden; overflow-y:auto; scrollbar-width:thin;
+  cursor:pointer; font-size:clamp(.8rem,2.1vh,.98rem); display:flex; flex-direction:column; box-shadow:0 10px 20px rgba(0,0,0,.5); transition:transform .12s;}
+.risk-card::before,.risk-card::after,.sol-card::before,.sol-card::after{content:""; position:absolute; top:6px; width:8px; height:8px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff,#777 60%,#333);}
+.risk-card::before,.sol-card::before{left:6px;} .risk-card::after,.sol-card::after{right:6px;}
+.risk-card:hover,.sol-card:hover{transform:translateY(-3px);}
+.risk-card.selected,.sol-card.selected{transform:translateY(-6px); outline-color:#fff; box-shadow:0 0 0 4px #fff, 0 0 26px 6px rgba(255,255,255,.55);}
+.rc-head{display:flex; gap:10px; align-items:center; margin:6px 0 6px;}
+.rc-tri{width:clamp(38px,5.6vh,52px); height:clamp(34px,5vh,46px); background:#111; clip-path:polygon(50% 0,100% 100%,0 100%); display:grid; place-items:end center; padding-bottom:3px; font-size:1.05rem; flex:none;}
+.rc-head b{font-family:var(--display); font-size:clamp(.8rem,2vh,.97rem); line-height:1.2; letter-spacing:.3px; font-weight:400;}
+.risk-card p{margin:0 0 8px; line-height:1.22;}
+.rc-need{margin-top:auto; border-top:3px solid #111; padding-top:6px; font-size:clamp(.7rem,1.8vh,.82rem); font-weight:700; line-height:1.2;}
+.rc-need .rc-lbl{display:inline-block; margin-right:4px;} .rc-need .rc-applied{margin-top:2px;}
+.chip{font-style:normal; font-weight:700; font-size:clamp(.66rem,1.7vh,.78rem); padding:2px 7px; border-radius:4px; color:#fff; display:inline-block; margin:3px 4px 0 0;}
+.chip.EPI{background:var(--orange);} .chip.TREINAMENTO{background:var(--blue);} .chip.ENGENHARIA{background:var(--green);} .chip.CORINGA{background:var(--purple);}
+.chip.done{background:#111; color:#7CFFB2;}
+
+.sol-card{position:relative; border-radius:12px; padding:16px 12px 12px; width:min(220px,40vw); min-height:180px; flex:1 1 180px; max-width:240px; cursor:pointer; border:4px solid #000; outline:3px solid rgba(255,255,255,.85); outline-offset:-9px; font-size:1rem; font-weight:600; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; box-shadow:0 10px 20px rgba(0,0,0,.5); transition:transform .12s;}
+.sol-card .ico{width:56px; height:56px; border-radius:50%; background:#fff; display:grid; place-items:center; font-size:1.7rem; border:3px solid #000;}
+.sol-card .tag{margin-top:auto; background:rgba(0,0,0,.55); padding:2px 10px; border-radius:4px; font-size:.78rem; font-weight:700;}
+.t-EPI{background:linear-gradient(#FF9034,#E86A00);} .t-TREINAMENTO{background:linear-gradient(#1D7BE6,#084E9F);}
+.t-ENGENHARIA{background:linear-gradient(#12B56B,#007A45);} .t-CORINGA{background:linear-gradient(#9455B8,#5F2C80);}
+
+.action-bar{display:flex; align-items:center; justify-content:center; gap:16px; padding:14px 24px; flex-wrap:wrap; flex:0 0 auto; background:#0d0f11; border-top:4px solid #000; border-bottom:4px solid #000;}
+.log{color:var(--yellow); flex-basis:100%; text-align:center; font-weight:600; min-height:1.3em;}
+.help-modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.72); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;}
+.help-modal{background:var(--panel); border:4px solid #000; outline:3px solid var(--yellow); outline-offset:-10px; border-radius:10px; max-width:640px; width:100%; max-height:88vh; display:flex; flex-direction:column; padding:22px;}
+.help-modal::before{content:""; height:12px; background:var(--hazard); margin:-22px -22px 16px; border-radius:6px 6px 0 0; flex:none;}
+.help-modal h2{font-family:var(--display); font-weight:400; color:var(--yellow); margin:0 0 10px; text-align:center;}
+.help-body{background:#171c20; border:2px solid #000; border-radius:6px; padding:16px; overflow-y:auto; white-space:pre-wrap; line-height:1.5; font-size:1rem;}
+.mute-btn{position:fixed; right:12px; bottom:calc(12px + env(safe-area-inset-bottom,0px)); z-index:60; width:44px; height:44px; border-radius:50%; border:3px solid #000; background:var(--yellow); font-size:1.2rem; cursor:pointer;}
+body.shake .game-screen{animation:shake .5s;}
+@keyframes shake{20%{transform:translate(-8px,3px)}40%{transform:translate(8px,-3px)}60%{transform:translate(-6px,2px)}80%{transform:translate(5px,-2px)}}
+::-webkit-scrollbar{width:10px;} ::-webkit-scrollbar-thumb{background:#5b6770; border-radius:5px;}
+@media (max-width:600px){ .card-box{padding:26px 20px;} h1.title{font-size:2rem;} .name-row span{width:80px; font-size:.9rem;} .topbar{padding:10px 14px;} .game-section{padding:8px 14px;} }
+@media (max-width:900px){
+  .factory-section{flex:1 0 auto; min-height:0;}
+  .cards-row.factory-row{flex:0 0 auto; margin:auto 0; align-items:stretch; overflow-x:auto; overflow-y:hidden;}
+  .factory-row>.risk-card{flex:0 0 230px; max-width:none; height:auto; max-height:none; align-self:stretch; overflow-y:visible;}
+}
+@media (max-width:760px){ .cards-row.hand-row{flex-wrap:nowrap; justify-content:flex-start; overflow-x:auto; overflow-y:hidden;} .hand-row>.sol-card{flex:0 0 240px; width:240px; max-width:none;} .hand-row>.sol-card:first-child{margin-left:auto;} .hand-row>.sol-card:last-child{margin-right:auto;} }
+
+/* ===== MÃO DE CARTAS: fileira única com rolagem lateral e cartas compactas quando acumulam ===== */
+.cards-row.hand-row{flex-wrap:nowrap; justify-content:flex-start; align-content:normal; overflow-x:auto; overflow-y:hidden; gap:14px; padding:18px 10px 16px; scroll-snap-type:x proximity; scrollbar-width:thin; overscroll-behavior-x:contain;}
+.cards-row.hand-row>.sol-card{flex:0 0 200px; width:200px; max-width:none; scroll-snap-align:center;}
+.cards-row.hand-row>.sol-card:first-child{margin-left:auto;} .cards-row.hand-row>.sol-card:last-child{margin-right:auto;}
+.cards-row.hand-row::-webkit-scrollbar{height:10px;}
+.cards-row.hand-row.dense{gap:10px;}
+.cards-row.hand-row.dense>.sol-card{flex-basis:156px; width:156px; min-height:140px; padding:12px 8px 8px; gap:5px; font-size:.86rem; outline-offset:-7px;}
+.cards-row.hand-row.dense>.sol-card .ico{width:40px; height:40px; font-size:1.2rem;}
+.cards-row.hand-row.dense>.sol-card .sol-hint{font-size:.68rem; padding:2px 6px;}
+.cards-row.hand-row.dense>.sol-card .tag{font-size:.66rem; padding:1px 7px;}
+.cards-row.hand-row.packed{gap:8px;}
+.cards-row.hand-row.packed>.sol-card{flex-basis:128px; width:128px; min-height:118px; padding:10px 6px 6px; font-size:.76rem;}
+.cards-row.hand-row.packed>.sol-card .ico{width:30px; height:30px; font-size:.95rem; border-width:2px;}
+.cards-row.hand-row.packed>.sol-card .sol-hint{font-size:.6rem;}
+.cards-row.hand-row.packed>.sol-card .tag{display:none;}
+.hand-count{font-size:.85em; opacity:.8;}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important;} }
+
+.home .actions-box{flex-direction:column; align-items:stretch;} .home .actions-box .btn{width:100%;}
+.help-modal-backdrop.silent-blur{background:rgba(10,12,14,.8); backdrop-filter:blur(22px) saturate(.5); -webkit-backdrop-filter:blur(22px) saturate(.5);}
+.help-modal-backdrop.burn{background:rgba(30,0,0,.3);}
+.pause-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:16px;}
+/* Celebração da vitória */
+.help-modal-backdrop.win{background:rgba(0,22,10,.28);}
+.help-modal-backdrop.win .help-modal{outline-color:#fff; box-shadow:0 0 0 3px var(--yellow), 0 0 60px 10px rgba(255,196,0,.5); animation:winpop .7s cubic-bezier(.2,1.35,.4,1) both;}
+.help-modal-backdrop.win .help-modal h2{font-size:clamp(1.5rem,5vw,2rem); text-shadow:0 0 18px rgba(255,196,0,.8),2px 2px 0 #000; animation:winglow 1.2s ease-in-out infinite alternate;}
+.help-modal-backdrop.win .help-modal::before{background:repeating-linear-gradient(-45deg,#12C271 0 14px,#FFC400 14px 28px);}
+@keyframes winpop{0%{transform:scale(.55) rotate(-3deg); opacity:0}100%{transform:none; opacity:1}}
+@keyframes winglow{to{text-shadow:0 0 32px rgba(255,235,120,1),2px 2px 0 #000; transform:scale(1.04)}}
+.victory{position:fixed; inset:0; z-index:45; pointer-events:none; overflow:hidden;}
+.victory::before{content:""; position:absolute; inset:0; background:radial-gradient(ellipse at 50% -5%,rgba(255,196,0,.55),rgba(18,194,113,.22) 42%,transparent 72%); animation:vglow 1.6s ease-in-out infinite alternate; will-change:opacity;}
+.victory .rays{position:absolute; left:50%; top:-70vmax; width:140vmax; height:140vmax; margin-left:-70vmax; animation:vspin 40s linear infinite;
+  background:repeating-conic-gradient(rgba(255,214,60,.22) 0 6deg,transparent 6deg 12deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0,transparent 55%); mask-image:radial-gradient(circle,#000 0,transparent 55%); }
+.victory .aura{position:absolute; left:0; right:0; bottom:0; height:46vh; background:radial-gradient(ellipse at 50% 120%,rgba(18,194,113,.65),rgba(255,196,0,.3) 45%,transparent 72%); animation:vglow 1.1s ease-in-out infinite alternate; will-change:opacity;}
+.victory .beam{position:absolute; bottom:-6vh; width:30vmax; height:112vh; margin-left:-15vmax; transform-origin:50% 100%; mix-blend-mode:screen; opacity:.55;
+  background:linear-gradient(to top,rgba(255,240,160,.8),rgba(255,236,150,.2) 55%,transparent 92%);
+  clip-path:polygon(47% 100%,53% 100%,100% 0,0 0);}
+.victory .beam.l{left:14%; animation:beamL 5.5s ease-in-out infinite alternate;}
+.victory .beam.r{left:86%; animation:beamR 5.5s ease-in-out infinite alternate;}
+.victory canvas{position:absolute; inset:0; width:100%; height:100%;}
+@keyframes vglow{to{opacity:.6}}
+@keyframes vspin{to{transform:rotate(360deg)}}
+@keyframes beamL{from{transform:rotate(-26deg)}to{transform:rotate(22deg)}}
+@keyframes beamR{from{transform:rotate(26deg)}to{transform:rotate(-22deg)}}
+/* Fogo do colapso final */
+.fire{position:fixed; left:0; right:0; bottom:0; height:68vh; z-index:45; pointer-events:none; overflow:hidden;}
+.fire::before{content:""; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 115%,rgba(255,90,0,.8),rgba(190,20,0,.4) 45%,transparent 72%); animation:glow .5s ease-in-out infinite alternate;}
+@keyframes glow{to{opacity:.65}}
+.flame{position:absolute; display:block; bottom:-14%; left:var(--x); width:var(--w); height:var(--h); margin-left:calc(var(--w) / -2); transform-origin:50% 100%; mix-blend-mode:screen; filter:blur(2px); opacity:.92;
+  background:radial-gradient(ellipse at 50% 88%,#fff7b0 0,#ffc400 25%,#ff6a00 55%,#d62828 80%,transparent 100%);
+  clip-path:polygon(50% 0,64% 24%,84% 46%,98% 74%,86% 100%,14% 100%,2% 74%,16% 46%,36% 24%); animation:flick var(--d) ease-in-out infinite alternate;}
+@keyframes flick{0%{transform:scale(1,.82) skewX(-7deg)}50%{transform:scale(.88,1.1) skewX(6deg)}100%{transform:scale(1.05,.9) skewX(-3deg)}}
+.ember{position:absolute; bottom:0; left:var(--x); width:5px; height:5px; border-radius:50%; background:#ffb300; box-shadow:0 0 8px #ff7a00; animation:rise var(--d) linear infinite;}
+@keyframes rise{0%{transform:translate(0,0); opacity:1}100%{transform:translate(var(--dx),-62vh); opacity:0}}
+
+.sol-card .sol-name{line-height:1.15;}
+.sol-card .sol-hint{font-size:.8rem; font-weight:600; background:rgba(0,0,0,.28); border-radius:4px; padding:2px 8px; line-height:1.2;}
+.chk-row{display:flex; gap:10px; align-items:center; justify-content:center; margin-top:14px; font-weight:600; cursor:pointer; text-align:left;}
+.chk-row input{width:22px; height:22px; accent-color:var(--yellow); flex:none;}
+.btn:disabled{opacity:.4; cursor:not-allowed; filter:none;}
+.countdown-overlay{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,.82); gap:10px;}
+.countdown-overlay .cd-label{font-family:inherit; letter-spacing:.3em; font-weight:900; color:var(--yellow); font-size:clamp(1rem,3.5vw,1.6rem); text-transform:uppercase;}
+.countdown-overlay .cd-num{font-weight:900; line-height:1; font-size:clamp(9rem,36vw,22rem); color:var(--yellow); text-shadow:0 0 40px rgba(255,196,0,.55), 6px 6px 0 #000; animation:cdPop 1s ease-out;}
+@keyframes cdPop{0%{transform:scale(1.9); opacity:0;} 25%{transform:scale(1); opacity:1;} 80%{opacity:1;} 100%{transform:scale(.85); opacity:.25;}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ===== ÁUDIO: tudo sintetizado via Web Audio (sem arquivos externos) ===== */
+const AU={ctx:null,muted:false,want:null,kind:null,mg:null,timer:null,step:0,next:0};
+const mf=n=>440*Math.pow(2,(n-69)/12);
+function auUnlock(){
+  if(!AU.ctx){
+    const C=window.AudioContext||window.webkitAudioContext; if(!C) return;
+    const c=AU.ctx=new C();
+    AU.master=c.createGain(); AU.master.gain.value=AU.muted?0:1; AU.master.connect(c.destination);
+    AU.mus=c.createGain(); AU.mus.gain.value=.32; AU.mus.connect(AU.master);
+    AU.sfx=c.createGain(); AU.sfx.gain.value=.8; AU.sfx.connect(AU.master);
+    AU.nb=c.createBuffer(1,c.sampleRate,c.sampleRate); const d=AU.nb.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  }
+  if(AU.ctx.state==='suspended') AU.ctx.resume();
+  if(AU.want && AU.kind!==AU.want) musicStart(AU.want);
+  document.querySelectorAll('.snd-hint').forEach(x=>x.remove());
+}
+['pointerdown','keydown'].forEach(e=>document.addEventListener(e,auUnlock));
+document.addEventListener('visibilitychange',()=>{ if(AU.ctx) document.hidden?AU.ctx.suspend():AU.ctx.resume(); });
+function tone(f,t,d,type,v,dest,to){
+  const c=AU.ctx,o=c.createOscillator(),g=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
+  if(to) o.frequency.exponentialRampToValueAtTime(to,t+d);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v||.2,t+.012); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g); g.connect(dest||AU.sfx); o.start(t); o.stop(t+d+.05);
+}
+function noise(t,d,v,f,type,dest){
+  const c=AU.ctx,s=c.createBufferSource(),fl=c.createBiquadFilter(),g=c.createGain(); s.buffer=AU.nb; fl.type=type||'bandpass'; fl.frequency.value=f||1000;
+  g.gain.setValueAtTime(v||.2,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  s.connect(fl); fl.connect(g); g.connect(dest||AU.sfx); s.start(t); s.stop(t+d+.05);
+}
+/* Efeitos sonoros */
+function sfx(n){
+  if(!AU.ctx||AU.muted) return;
+  const t=AU.ctx.currentTime+.01, T=(f,o,d,ty,v,to)=>tone(f,t+o,d,ty,v,null,to);
+  switch(n){
+    case 'click': T(520,0,.07,'square',.08); break;
+    case 'select': T(880,0,.05,'triangle',.18); T(1320,.04,.06,'triangle',.12); break;
+    case 'draw': noise(t,.18,.25,3000,'highpass'); T(400,.05,.12,'triangle',.15,700); break;
+    case 'apply': noise(t,.08,.3,1800); T(330,0,.12,'square',.14); T(495,.09,.12,'square',.14); T(660,.18,.2,'square',.14); break;
+    case 'neutral': [523,659,784,1047].forEach((f,i)=>T(f,i*.08,.25,'triangle',.22)); T(2093,.34,.4,'sine',.1); break;
+    case 'error': T(160,0,.28,'sawtooth',.2,90); T(150,.14,.22,'sawtooth',.2,80); break;
+    case 'alert': T(880,0,.12,'square',.13); T(660,.16,.12,'square',.13); T(880,.32,.12,'square',.13); break;
+    case 'collapse': for(let i=0;i<3;i++) T(500,i*.4,.38,'sawtooth',.2,1000); noise(t,.9,.5,180,'lowpass'); T(70,0,.8,'sine',.5,35); break;
+    case 'fire': for(let i=0;i<16;i++) noise(t+Math.random()*2.6,.06,.25,1500+Math.random()*3000,'highpass'); noise(t,2.8,.25,300,'lowpass'); break;
+    case 'tick': T(1100,0,.05,'square',.12); break;
+    case 'timeout': T(300,0,.5,'sawtooth',.22,90); noise(t,.3,.2,400,'lowpass'); break;
+    case 'turn': T(587,0,.1,'triangle',.16); T(784,.1,.16,'triangle',.16); break;
+    case 'pause': T(600,0,.1,'sine',.2,300); break;
+    case 'resume': T(300,0,.1,'sine',.2,600); break;
+    case 'count': T(740,0,.16,'square',.16); T(370,0,.2,'triangle',.12); break;
+    case 'start': [392,392,523].forEach((f,i)=>T(f,i*.16,i==2?.5:.14,'sawtooth',.14)); break;
+    case 'win': [523,659,784,1047,784,1047,1319].forEach((f,i)=>T(f,i*.14,i==6?.9:.2,'square',.13)); [523,659,784,1047,1319].forEach(f=>T(f,.98,1.6,'triangle',.09)); T(262,.98,1.6,'sine',.22); for(let i=0;i<10;i++) T(2000+Math.random()*2500,1+i*.07,.12,'sine',.05); break;
+    case 'whistle': T(450,0,.6,'sine',.045,1900); break;
+    case 'boom': noise(t,.55,.34,240,'lowpass'); T(95,0,.4,'sine',.4,38); for(let i=0;i<7;i++) noise(t+.06+Math.random()*.55,.04,.11,3000+Math.random()*4500,'highpass'); break;
+    case 'pop': noise(t,.14,.3,900,'bandpass'); T(220,0,.14,'triangle',.28,80); break;
+    case 'lose': [392,349,311,262].forEach((f,i)=>T(f,i*.3,.5,'sawtooth',.18)); T(65,1,1.3,'sine',.5,40); break;
+  }
+}
+/* Músicas: "menu" (calma, industrial) e "game" (tensa, ritmada) */
+const MUS={
+  menu:{bpm:86,play(s,t,o){
+    const bar=Math.floor(s/16)%4, st=s%16, r=[45,41,48,43][bar], ch=bar==0?[0,3,7]:[0,4,7];
+    if(st==0){ ch.forEach(i=>tone(mf(r+12+i),t,2.6,'sine',.09,o)); tone(mf(r),t,1.4,'triangle',.3,o); if(bar%2==0) noise(t,.15,.07,900,'bandpass',o); }
+    if(st==8) tone(mf(r),t,.9,'triangle',.22,o);
+    if(st%2==0) tone(mf(r+24+[0,ch[1],ch[2],12,ch[2],ch[1],0,ch[2]][st/2]),t,.35,'sine',.07,o);
+    if(st==4||st==12) noise(t,.05,.05,6000,'highpass',o);
+  }},
+  game:{bpm:128,play(s,t,o){
+    const bar=Math.floor(s/16)%4, st=s%16, r=[45,45,41,43][bar];
+    if(st%4==0) tone(120,t,.18,'sine',.6,o,40);
+    if(st%4==2) noise(t,.04,.12,7000,'highpass',o);
+    if(st==4||st==12) noise(t,.12,.18,2500,'bandpass',o);
+    if(st%2==0) tone(mf(r-12+(st%8==6?7:0)),t,.16,'sawtooth',.1,o);
+    const li=[0,3,6,10,13].indexOf(st); if(li>=0) tone(mf(r+24+[0,3,7,10,7][li]),t,.14,'square',.05,o);
+    if(st==0&&bar==3) tone(mf(r+18),t,.4,'triangle',.08,o);
+  }}
+};
+function musicStart(k){
+  AU.want=k; if(!AU.ctx||AU.kind===k) return; musicStop(true);
+  AU.kind=k; AU.mg=AU.ctx.createGain(); AU.mg.connect(AU.mus); AU.step=0; AU.next=AU.ctx.currentTime+.08;
+  AU.timer=setInterval(()=>{ const M=MUS[AU.kind]; if(!M) return; while(AU.next<AU.ctx.currentTime+.25){ M.play(AU.step,AU.next,AU.mg); AU.next+=15/M.bpm; AU.step++; } },60);
+}
+function musicStop(keep){
+  if(!keep) AU.want=null;
+  clearInterval(AU.timer); AU.timer=null; AU.kind=null;
+  if(AU.mg){ const g=AU.mg; g.gain.setTargetAtTime(0,AU.ctx.currentTime,.15); setTimeout(()=>g.disconnect(),900); AU.mg=null; }
+}
+function duck(on){ if(AU.mus) AU.mus.gain.setTargetAtTime(on?.08:.32,AU.ctx.currentTime,.1); }
+const muteBtn=document.createElement('button'); muteBtn.className='mute-btn'; muteBtn.textContent='🔊'; muteBtn.setAttribute('aria-label','Ligar ou desligar o som');
+muteBtn.onclick=()=>{ AU.muted=!AU.muted; if(AU.master) AU.master.gain.value=AU.muted?0:1; muteBtn.textContent=AU.muted?'🔇':'🔊'; };
+document.body.appendChild(muteBtn);
+document.addEventListener('click',e=>{ if(e.target.closest('.btn,.radio-row button') && !e.target.closest('.silent-blur,#btnConfirm')) sfx('click'); });
+
+const CAT_ICON={EPI:'🦺',TREINAMENTO:'📋',ENGENHARIA:'⚙️',CORINGA:'⭐'};
+const RISK_ICON={"Prensa sem Sensor Óptico":"🗜️","Trabalho em Telhado sem Linha de Vida":"🪜","Vazamento Químico com Névoa Tóxica":"☣️","Painel Elétrico Aberto em Área Úmida":"⚡","Operação de Caldeira sem Manômetro":"🔥","Manuseio de Ácido sem Proteção":"🧪","Espaço Confinado sem Vigia":"🕳️","Ruído Contínuo acima de 95dB":"🔊","Empilhadeira em Alta Velocidade":"🚜","Falta de Guarda-Corpo em Passarela":"🚧"};
+const SKYLINE=(()=>{
+  let roof=''; for(let i=0;i<8;i++){ roof+=` V120 L${40+i*60+60} 150`; }
+  const chim=[{x:118,top:38,w:30,base:150},{x:300,top:18,w:32,base:150},{x:616,top:84,w:28,base:172}];
+  let body=`<g fill="#0a0c0e"><rect y="228" width="800" height="40"/><path d="M40 230 V150${roof} V230 Z"/><rect x="540" y="170" width="220" height="60"/>`;
+  chim.forEach(c=>{ body+=`<rect x="${c.x}" y="${c.top}" width="${c.w}" height="${c.base-c.top+2}"/><rect x="${c.x-4}" y="${c.top-6}" width="${c.w+8}" height="8"/>`; });
+  body+=`</g><g fill="#FFC400" opacity=".9">`;
+  chim.forEach(c=>{ body+=`<rect x="${c.x}" y="${c.top+16}" width="${c.w}" height="7"/><rect x="${c.x}" y="${c.top+34}" width="${c.w}" height="7"/>`; });
+  body+=`</g><g fill="#FFC400" opacity=".85">`;
+  for(let i=0;i<7;i++) body+=`<rect x="${64+i*64}" y="188" width="18" height="11"/>`;
+  for(let i=0;i<5;i++) body+=`<rect x="${560+i*40}" y="190" width="18" height="11"/>`;
+  body+=`</g><circle class="beacon" cx="316" cy="6" r="7" fill="#ff3b30"/>`;
+  let smoke='';
+  chim.forEach(c=>{ const n=6, dur=8;
+    for(let k=0;k<n;k++){
+      const r=(11+Math.random()*6).toFixed(1), cx=(c.x+c.w/2+(Math.random()*8-4)).toFixed(1), dx=(25+Math.random()*60)|0, dl=(-(k*dur/n)-Math.random()).toFixed(2);
+      smoke+=`<circle class="puff" cx="${cx}" cy="${c.top-8}" r="${r}" style="--dx:${dx}px;--d:${dur}s;--dl:${dl}s"/>`;
+    } });
+  return `<svg class="skyline" viewBox="0 0 800 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${smoke}${body}</svg>`;
+})();
+</script>
+<script>
+const TAG_COLORS = { EPI:"#E67E22", TREINAMENTO:"#2980B9", ENGENHARIA:"#27AE60", CORINGA:"#8E44AD" };
+const TURN_TIME_LIMIT = 20;   // segundos por turno
+const MAX_FACTORY = 5;        // máximo de riscos na fábrica
+const MAX_WARNINGS = 3;       // a 3ª advertência encerra o jogo
+const HAND_SIZE = {2:6, 3:5, 4:4, 5:3}; // cartas iniciais por jogador, conforme o nº de jogadores
+const END_PASS_TOLERANCE = {2:2, 3:2, 4:3, 5:3}; // pulos de "passar a vez" tolerados após o fim do baralho de riscos; o seguinte gera advertência
+const END_MEASURE_TOLERANCE = {2:4, 3:4, 4:6, 5:6}; // pulos de "aplicar medida": o dobro da tolerância de passar a vez
+
+const ROLES = [
+  {name:"Técnico de Segurança", desc:"Especialista em EPI e Auditoria", fav:"EPI"},
+  {name:"Engenheiro de Produção", desc:"Especialista em Engenharia e Infra", fav:"ENGENHARIA"},
+  {name:"Membro da CIPA", desc:"Especialista em Treinamento e Conscientização", fav:"TREINAMENTO"},
+  {name:"Brigadista / Socorrista", desc:"Suporte rápido e prevenção de incidentes", fav:"CORINGA"},
+  {name:"Auditor de Qualidade", desc:"Visão geral e flexibilidade operacional", fav:"CORINGA"}
+];
+
+const RISK_POOL = [
+  {id:"prensa", short:"Prensa", title:"Prensa sem Sensor Óptico", reqs:["ENGENHARIA","TREINAMENTO"], desc:"Risco de esmagamento grave."},
+  {id:"telhado", short:"Telhado", title:"Trabalho em Telhado sem Linha de Vida", reqs:["TREINAMENTO","EPI"], desc:"Risco de queda de nível (NR-35)."},
+  {id:"quimico", short:"Vazamento químico", title:"Vazamento Químico com Névoa Tóxica", reqs:["ENGENHARIA","EPI"], desc:"Contaminação de via aérea e solo."},
+  {id:"eletrico", short:"Painel elétrico", title:"Painel Elétrico Aberto em Área Úmida", reqs:["ENGENHARIA","EPI"], desc:"Choque de alta tensão (NR-10)."},
+  {id:"caldeira", short:"Caldeira", title:"Operação de Caldeira sem Manômetro", reqs:["ENGENHARIA","TREINAMENTO"], desc:"Risco de explosão (NR-13)."},
+  {id:"acido", short:"Ácido", title:"Manuseio de Ácido sem Proteção", reqs:["EPI"], desc:"Queimadura química imediata."},
+  {id:"confinado", short:"Espaço confinado", title:"Espaço Confinado sem Vigia", reqs:["TREINAMENTO","EPI"], desc:"Asfixia e intoxicação (NR-33)."},
+  {id:"ruido", short:"Ruído", title:"Ruído Contínuo acima de 95dB", reqs:["EPI"], desc:"Perda auditiva induzida."},
+  {id:"empilhadeira", short:"Empilhadeira", title:"Empilhadeira em Alta Velocidade", reqs:["TREINAMENTO"], desc:"Risco de atropelamento e tombamento."},
+  {id:"guarda", short:"Passarela", title:"Falta de Guarda-Corpo em Passarela", reqs:["ENGENHARIA"], desc:"Risco de queda de trabalhadores."}
+];
+const RISK_SHORT = Object.fromEntries(RISK_POOL.map(r=>[r.id,r.short]));
+
+// [nome da carta, categoria, riscos que ela resolve]
+const SOLUTION_POOL = [
+  // EPI
+  ["Protetor Auricular","EPI",["ruido"]],
+  ["Abafador de Ruído","EPI",["ruido"]],
+  ["Cinto Paraquedista","EPI",["telhado"]],
+  ["Trava-quedas","EPI",["telhado"]],
+  ["Respirador Químico","EPI",["quimico","confinado"]],
+  ["Roupa Química","EPI",["quimico","acido"]],
+  ["Luva Isolante","EPI",["eletrico"]],
+  ["Calçado Dielétrico","EPI",["eletrico"]],
+  ["Luva e Óculos Químico","EPI",["acido"]],
+  ["Avental de PVC","EPI",["acido"]],
+  ["Protetor Facial","EPI",["acido"]],
+  ["Máscara Autônoma","EPI",["confinado"]],
+  ["Cinto de Resgate","EPI",["confinado"]],
+  // TREINAMENTO
+  ["Treino de Prensas","TREINAMENTO",["prensa"]],
+  ["DDS Mãos Seguras","TREINAMENTO",["prensa"]],
+  ["Curso NR-35","TREINAMENTO",["telhado"]],
+  ["Resgate em Altura","TREINAMENTO",["telhado"]],
+  ["Curso NR-13","TREINAMENTO",["caldeira"]],
+  ["Checklist de Inspeção","TREINAMENTO",["caldeira"]],
+  ["Curso NR-33","TREINAMENTO",["confinado"]],
+  ["Vigia e Resgate","TREINAMENTO",["confinado"]],
+  ["Curso de Empilhadeira","TREINAMENTO",["empilhadeira"]],
+  ["DDS de Velocidade","TREINAMENTO",["empilhadeira"]],
+  // ENGENHARIA
+  ["Sensor Óptico","ENGENHARIA",["prensa"]],
+  ["Comando Bimanual","ENGENHARIA",["prensa"]],
+  ["Exaustão de Vapores","ENGENHARIA",["quimico"]],
+  ["Bacia de Contenção","ENGENHARIA",["quimico"]],
+  ["Aterramento","ENGENHARIA",["eletrico"]],
+  ["Chave Blindada","ENGENHARIA",["eletrico"]],
+  ["Válvula de Alívio","ENGENHARIA",["caldeira"]],
+  ["Manômetro Novo","ENGENHARIA",["caldeira"]],
+  ["Guarda-corpo e Rodapé","ENGENHARIA",["guarda"]],
+  ["Tela de Proteção","ENGENHARIA",["guarda"]],
+  // CORINGA
+  ["Plano de Emergência","CORINGA",[]],
+  ["Consultoria Técnica","CORINGA",[]]
+];
+function hintOf(sol){
+  if(sol.tag==='CORINGA') return 'Resolve: qualquer risco';
+  return 'Resolve: ' + sol.solves.map(id=>RISK_SHORT[id]).join(' / ');
+}
+
+const MANUAL_TEXT = `1. A HISTÓRIA E O OBJETIVO
+
+Imagine que você está numa fábrica. As máquinas estão ligadas, os funcionários circulam pelos corredores e, de repente, os riscos começam a aparecer: uma prensa sem proteção, um painel elétrico aberto no chão molhado, um barulho que não para...
+
+Você e seus colegas formam a equipe de Segurança do Trabalho e da CIPA. Ninguém joga contra ninguém: ou a equipe inteira salva a fábrica, ou a fiscalização interdita tudo.
+
+O objetivo é neutralizar todos os riscos da fábrica antes que ela receba 3 advertências.
+
+--------------------------------------------------------------------------------
+2. COMO A PARTIDA TERMINA
+
+• Vitória coletiva: os riscos acabaram no baralho e não sobrou nenhum perigo na fábrica.
+• Derrota: a fábrica recebe a 3ª advertência e é interditada.
+
+--------------------------------------------------------------------------------
+3. AS CARTAS
+
+🟡 RISCOS (cartas amarelas) ficam espalhados pela fábrica. Cada risco mostra o que ainda FALTA para neutralizá-lo. Risco com 1 item é Simples; com 2 itens é Grave, e cada item pode ser resolvido por um jogador diferente, em turnos diferentes.
+
+SOLUÇÕES (cartas coloridas) ficam na sua mão e se dividem em categorias:
+• 🟠 LARANJA, EPI/EPC: capacetes, luvas, cintos, protetores auriculares, respiradores.
+• 🔵 AZUL, TREINAMENTO: DDS e cursos das Normas Regulamentadoras (NR-13, NR-33, NR-35).
+• 🟢 VERDE, ENGENHARIA: sensores, exaustores, aterramentos, guarda-corpos, válvulas.
+• 🟣 ROXO, CORINGA: serve para qualquer risco e resolve o primeiro item pendente da lista "Falta:".
+
+A DICA NA CARTA: cada solução tem um nome curto e, logo abaixo, uma dica "Resolve: ..." que diz contra qual risco ela funciona. Na vida real é igual: um protetor auricular resolve o ruído, mas não adianta nada contra um ácido.
+
+Para aplicar uma carta em um risco, duas coisas precisam ser verdadeiras:
+1. o risco ainda precisa daquela categoria (está na lista "Falta:");
+2. o risco aparece na dica da carta.
+O Coringa é a exceção: vale para qualquer risco.
+
+Todo risco tem pelo menos 2 cartas específicas no baralho. Converse com a equipe: quem tem a carta certa para cada problema?
+
+--------------------------------------------------------------------------------
+4. PREPARAÇÃO DA PARTIDA
+
+• Escolha de 2 a 5 jogadores e informe o nome de cada um.
+• Cada jogador recebe um cargo sorteado (é só temático). A etiqueta do cargo, ao lado de "Vez de: nome", muda de cor conforme a área de afinidade: 🟠 EPI (Técnico de Segurança), 🟢 Engenharia (Engenheiro de Produção), 🔵 Treinamento (Membro da CIPA) e 🟣 Coringa (Brigadista / Socorrista e Auditor de Qualidade).
+• A fábrica começa com 2 riscos revelados.
+• Quantidade de cartas de solução na mão, no início:
+    2 jogadores: 6 cartas    3 jogadores: 5 cartas
+    4 jogadores: 4 cartas    5 jogadores: 3 cartas
+• A fábrica começa com 0 advertências (3 triângulos apagados).
+• Antes de começar, todos os jogadores confirmam que leram este manual. Só depois o cronômetro inicia. Na tela de confirmação há o botão "Ler manual" para consultá-lo antes de começar.
+
+--------------------------------------------------------------------------------
+5. O CRONÔMETRO: 20 SEGUNDOS POR TURNO
+
+Você tem 20 segundos para pensar qual solução resolve qual risco.
+Verde (20 a 11s): tranquilo. Laranja (10 a 6s): atenção. Vermelho (5s ou menos): risco iminente.
+Se o tempo acabar: você perde a ação, compra 1 carta automaticamente (se ainda houver baralho) e a vez passa adiante. O novo risco da fábrica continua sendo revelado normalmente. Na fase final (baralho de riscos vazio), o tempo esgotado conta como passar a vez e pode gerar advertência pelo contador de pulos; fora dela, não gera advertência.
+O botão "Pausar / Ajuda" congela o cronômetro.
+O cronômetro também fica pausado enquanto um aviso de erro estiver aberto na tela (carta que não resolve o risco, categoria já aplicada ou seleção incompleta). Ao fechar o aviso, o tempo volta a correr de onde parou, então errar a solução não faz você perder tempo.
+
+--------------------------------------------------------------------------------
+6. O QUE FAZER NO SEU TURNO
+
+Passo 1. Escolha uma das duas ações:
+a) Aplicar Medida: selecione 1 risco na fábrica e 1 solução da sua mão e clique em Aplicar. A carta usada é descartada e você compra +1 carta para repor a sua mão. Riscos Simples são eliminados na hora; Riscos Graves registram o que já foi aplicado até receberem a segunda medida.
+b) Estudo Técnico: compre +1 carta e passe o turno sem aplicar medida. Não há limite de cartas na mão: se acumular muitas, a fileira de cartas fica compacta e rola para o lado (deslize o dedo ou use a roda do mouse).
+
+Passo 2. Ocorrência na fábrica (automático): 1 novo risco é revelado, se ainda houver baralho. Depois a vez passa ao próximo jogador.
+
+Atenção: quando o baralho de riscos acaba, o Estudo Técnico passa a ter limite. Veja a regra da fase final na seção 7.
+
+--------------------------------------------------------------------------------
+7. LIMITE DE RISCOS E ADVERTÊNCIAS
+
+A fábrica comporta no máximo 5 riscos ao mesmo tempo.
+
+Quando o 6º risco chega, a fábrica sai do controle:
+• a fiscalização aplica 1 advertência, e um triângulo se acende no topo da tela;
+• o sistema escolhe sozinho qual risco sai da fábrica, olhando os 6 riscos e as cartas de solução que todos os jogadores têm na mão (o Coringa não entra na conta). Sai o risco que a equipe tem MENOS cartas para resolver, o que acaba ajudando vocês. Em caso de empate, o sistema sorteia entre os empatados;
+• a fábrica volta a ter 5 riscos.
+
+FASE FINAL: QUANDO O BARALHO DE RISCOS ACABA
+Depois que o último risco foi revelado, não chegam mais riscos novos, mas a fábrica ainda pode ter perigos pendentes. Nessa fase, a equipe tem dois contadores de "pulos", e cada um tem seu limite:
+• 2 jogadores: até 2 pulos de vez e até 4 aplicando medida;
+• 3 jogadores: até 2 pulos de vez e até 4 aplicando medida;
+• 4 ou 5 jogadores: até 3 pulos de vez e até 6 aplicando medida.
+No pulo seguinte ao limite de qualquer um dos dois contadores, a fiscalização aplica 1 advertência por ainda haver risco pendente, e o jogo continua. Quando a advertência (colapso) acontece, os dois contadores voltam a zero e recomeçam.
+• A contagem é da equipe inteira (não de cada jogador), só começa depois que o baralho de riscos acaba e zera a cada advertência aplicada por esta regra.
+• Passar a vez (Estudo Técnico) soma 1 no contador de vez; Aplicar Medida (solucionando um problema) soma 1 no contador de medidas, que aceita o dobro. Os contadores são da equipe inteira, só valem depois que o baralho de riscos acaba e zeram a cada advertência. Tempo esgotado conta como passar a vez (soma 1 no contador de vez).
+
+Quando o 3º triângulo acende, a fábrica é interditada e a equipe perde. A advertência vem de duas situações: estourar o limite de riscos ou estourar a tolerância de pulos na fase final.
+
+--------------------------------------------------------------------------------
+8. REFERÊNCIA RÁPIDA DA TELA
+
+Barra superior: triângulos de advertência, riscos ocultos no baralho, cronômetro, pausa/ajuda, cargo e "Vez de: nome".
+Fábrica: até 5 cartas de risco, com "Falta:" e "Aplicado:".
+Sua mão: cartas de solução coloridas por categoria, com a dica "Resolve: ..." embaixo do nome. A tela mostra a mão de quem está na vez; o título da seção informa quantas cartas você tem.
+Um clique seleciona a carta (borda branca); outro clique desmarca.
+
+--------------------------------------------------------------------------------
+9. GLOSSÁRIO: NORMAS REGULAMENTADORAS
+
+NR-10: Eletricidade. NR-13: Caldeiras e Vasos de Pressão. NR-33: Espaços Confinados. NR-35: Trabalho em Altura.
+São citadas só como contexto temático; não é preciso conhecê-las para jogar.
+
+--------------------------------------------------------------------------------
+10. RESUMO EM UMA PÁGINA
+
+• Cooperativo, de 2 a 5 jogadores. A fábrica aguenta 3 advertências.
+• 20 segundos por turno; tempo esgotado = perde a ação da vez e conta como passar a vez na fase final. Avisos de erro pausam o cronômetro.
+• Aplicar Medida (gasta 1 solução compatível) OU Estudo Técnico (compra 1 e passa).
+• A solução só funciona se a categoria está pendente E o risco aparece na dica da carta. Coringa vale para tudo.
+• Máximo de 5 riscos. O 6º gera 1 advertência, e o sistema remove o risco que a equipe tem menos cartas para resolver.
+• Fase final (baralho de riscos vazio): dois contadores da equipe. Passar a vez: tolerância de 2 pulos (2 ou 3 jogadores) ou 3 (4 ou 5). Aplicar medida: o dobro, 4 ou 6. Estourar qualquer um gera 1 advertência e zera os dois.
+• Vitória: baralho de riscos vazio e fábrica limpa. Derrota: 3 advertências.`;
+
+const HELP_TEXT = `Precisa de uma consulta rápida? Aqui está o essencial, sem sair da partida.
+
+COMO AGIR NO SEU TURNO (escolha 1):
+• Aplicar Medida: selecione 1 risco + 1 solução compatível e clique em "Aplicar Medida / Neutralizar".
+  Riscos Simples resolvem com 1 medida; Riscos Graves precisam de 2 (podem ser jogadores/turnos diferentes).
+• Estudo Técnico: sem carta certa? Compre +1 e passe a vez.
+
+CATEGORIAS:
+Laranja EPI/EPC, Azul TREINAMENTO, Verde ENGENHARIA, Roxo CORINGA (resolve qualquer risco).
+A dica "Resolve: ..." embaixo do nome da carta mostra contra qual risco ela funciona. A carta só serve se a categoria ainda falta no risco E o risco está na dica.
+
+CRONÔMETRO:
+20 segundos por turno. Verde tranquilo, Laranja atenção, Vermelho últimos segundos. Tempo esgotado = perde a ação e você compra 1 carta automaticamente. Na fase final, conta como passar a vez no contador de pulos. Avisos de erro pausam o cronômetro até serem fechados.
+
+FÁBRICA E ADVERTÊNCIAS:
+A fábrica comporta no máximo 5 riscos. Quando o 6º chega, acende 1 triângulo de advertência (de 3) e o sistema remove o risco que a equipe tem menos cartas para resolver.
+Baralho de riscos vazio: dois contadores de pulos. Passar a vez (Estudo Técnico) tolera 2 pulos (2 ou 3 jogadores) ou 3 (4 ou 5); aplicar medida tolera o dobro (4 ou 6). Estourar qualquer um gera 1 advertência, os dois zeram e o jogo continua.
+
+VITÓRIA E DERROTA:
+Vitória: baralho de riscos acaba E fábrica neutralizada. Derrota: os 3 triângulos acesos.
+
+Jogo cooperativo: conversem para decidir a melhor jogada em equipe, mesmo com o relógio correndo!`;
+
+// ---------------- ESTADO ----------------
+let S = {};
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+function sample(arr,n){ return shuffle(arr.slice()).slice(0,n); }
+
+function newRiskCard(d){ return {id:d.id, title:d.title, desc:d.desc, required:d.reqs.slice(), applied:[]}; }
+function isResolved(r){ return r.required.length===0; }
+
+function resetState(numPlayers, names){
+  S.numPlayers = numPlayers;
+  S.playerNames = names;
+  S.playerRoles = sample(ROLES, numPlayers);
+  S.warnings = 0;
+  S.justLit = null;
+  S.endPasses = 0;
+  S.endMeasures = 0;
+  S.passWarnTipo = null;
+  S.passWarn = false;
+  S.maxFactory = MAX_FACTORY;
+  S.currentPlayer = 0;
+  S.selectedRisk = null;
+  S.selectedSol = null;
+  S.riskDeck = shuffle(RISK_POOL.map(newRiskCard));
+  S.solutionDeck = shuffle(SOLUTION_POOL.map(([t,tag,solves])=>({title:t, tag, solves})));
+  S.factory = [S.riskDeck.pop(), S.riskDeck.pop()];
+  S.hands = [];
+  for(let i=0;i<numPlayers;i++){
+    const hand = [];
+    for(let k=0;k<HAND_SIZE[numPlayers];k++){ if(S.solutionDeck.length) hand.push(S.solutionDeck.pop()); }
+    S.hands.push(hand);
+  }
+  S.timeLeft = TURN_TIME_LIMIT;
+  S.timerId = null;
+  S.paused = false;
+  S.logMsg = "";
+}
+
+function warnTri(on, fresh){
+  return `<svg class="wtri${on?' on':''}${fresh?' fresh':''}" viewBox="0 0 40 36" aria-hidden="true"><path class="tb" d="M20 3 L38 33 L2 33 Z"/><rect class="tm" x="18.4" y="13" width="3.2" height="11" rx="1"/><circle class="tm" cx="20" cy="28.3" r="1.9"/></svg>`;
+}
+
+const app = document.getElementById('app');
+
+// ---------------- TELA INICIAL ----------------
+function renderStart(){
+  stopTimer(); stopFire(); stopVictory(); musicStart('menu');
+  app.innerHTML = `
+  <div class="screen center home"><div class="tape top"></div><div class="tape bottom"></div>${SKYLINE}
+    <div class="card-box">
+      <div class="board">Meta da equipe: <b>0</b> acidentes</div>
+      <h1 class="title">OPERAÇÃO<br>RISCO ZERO</h1>
+      <p class="subtitle">Gestão Colaborativa de Segurança do Trabalho</p>
+      <label class="field-label">Selecione a quantidade de Especialistas:</label>
+      <div class="radio-row" id="playerCountRow" role="radiogroup" aria-label="Quantidade de jogadores">
+        ${[2,3,4,5].map(n=>`<button type="button" role="radio" class="${n===2?'checked':''}" aria-checked="${n===2}" data-n="${n}">${n} Jogadores</button>`).join('')}
+      </div>
+      <div class="actions-box">
+        <button class="btn btn-green" id="btnStart">▶ Iniciar Turno de Emergência</button>
+        <a class="btn btn-blue" id="btnManualPdf" href="Manual_-_Opera%C3%A7%C3%A3o_Risco_Zero.pdf" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;">📖 Manual do Jogo (PDF)</a>
+      </div>
+      ${AU.ctx?'':'<p class="snd-hint">🔊 Toque em qualquer lugar para ativar o som</p>'}
+    </div>
+  </div>`;
+  let count = 2;
+  document.querySelectorAll('#playerCountRow button').forEach(l=>{
+    l.addEventListener('click', ()=>{
+      document.querySelectorAll('#playerCountRow button').forEach(x=>{ x.classList.remove('checked'); x.setAttribute('aria-checked','false'); });
+      l.classList.add('checked'); l.setAttribute('aria-checked','true');
+      count = parseInt(l.dataset.n);
+    });
+  });
+  document.getElementById('btnStart').onclick = ()=> renderNames(count);
+}
+
+function renderManual(){
+  stopTimer();
+  app.innerHTML = `
+  <div class="screen">
+    <div class="manual-header">
+      <h1 class="title" style="text-align:left;margin:0;">MANUAL OFICIAL: OPERAÇÃO RISCO ZERO</h1>
+      <button class="btn btn-red" id="btnBack">⬅ Voltar ao Menu</button>
+    </div>
+    <div class="manual-text">${escapeHtml(MANUAL_TEXT)}</div>
+  </div>`;
+  document.getElementById('btnBack').onclick = renderStart;
+}
+
+function renderNames(numPlayers){
+  stopTimer();
+  app.innerHTML = `
+  <div class="screen center">
+    <div class="card-box">
+      <h1 class="title">IDENTIFIQUE A EQUIPE</h1>
+      <p class="subtitle">Informe o nome dos ${numPlayers} Especialistas em campo</p>
+      <div id="namesWrap"></div>
+      <div class="actions-box">
+        <button class="btn btn-gray" id="btnBack2">⬅ Voltar</button>
+        <button class="btn btn-green" id="btnConfirm">Confirmar Nomes e Preparar Fábrica</button>
+      </div>
+    </div>
+  </div>`;
+  const wrap = document.getElementById('namesWrap');
+  for(let i=0;i<numPlayers;i++){
+    const row = document.createElement('div');
+    row.className = 'name-row';
+    row.innerHTML = `<span>Jogador ${i+1}:</span><input type="text" value="Jogador ${i+1}" id="name${i}">`;
+    wrap.appendChild(row);
+  }
+  document.getElementById('btnBack2').onclick = renderStart;
+  document.getElementById('btnConfirm').onclick = ()=>{
+    const names = [];
+    for(let i=0;i<numPlayers;i++){
+      const v = document.getElementById('name'+i).value.trim();
+      names.push(v || `Jogador ${i+1}`);
+    }
+    resetState(numPlayers, names);
+    renderGame();
+    confirmStart();
+  };
+}
+
+// Contagem regressiva 3-2-1 (com bip a cada número) antes de a partida começar
+function contagemInicial(cb){
+  const ov = document.createElement('div');
+  ov.className = 'countdown-overlay';
+  ov.setAttribute('role','status'); ov.setAttribute('aria-live','assertive');
+  ov.innerHTML = '<div class="cd-label">A partida começa em</div><div class="cd-num"></div>';
+  document.body.appendChild(ov);
+  const num = ov.querySelector('.cd-num');
+  let n = 3;
+  (function passo(){
+    if(n>0){
+      num.textContent = n;
+      num.style.animation = 'none'; void num.offsetWidth; num.style.animation = '';
+      sfx('count');
+      n--; setTimeout(passo, 1000);
+    } else { ov.remove(); cb(); }
+  })();
+}
+
+// Contagem 3-2-1 e começo da partida (usado no início normal e em "Jogar novamente")
+function iniciarPartida(){
+  contagemInicial(()=>{
+    setLog("Equipe em campo! Decisões rápidas evitam acidentes.");
+    sfx('start'); musicStart('game');
+    startTimer();
+  });
+}
+
+// Revanche: mesma equipe e mesmos nomes, tabuleiro novo; só confirma se está preparado (manual já lido)
+function jogarNovamente(){
+  stopTimer(); stopFire(); stopVictory(); musicStop();
+  resetState(S.numPlayers, S.playerNames.slice());
+  renderGame();
+  showModal(
+    'Jogar novamente',
+    `Equipe: ${S.playerNames.join(', ')}\n\nA fábrica foi preparada de novo, com novos riscos e novas mãos.\n\nVocês estão preparados?`,
+    [
+      {label:'Voltar ao menu inicial', className:'btn-gray', onClick: renderStart},
+      {label:'Equipe preparada', className:'btn-green', onClick: iniciarPartida}
+    ],
+    {silent:true}
+  );
+}
+
+function confirmStart(jaLeu){
+  musicStop();
+  const equipe = S.playerNames.join(', ');
+  showModal(
+    'Confirmar Início da Partida',
+    `Equipe montada: ${equipe}\n\nA fábrica está com os primeiros riscos revelados e as mãos já foram distribuídas.\n\nAntes de começar, todos os jogadores precisam ter lido o manual do jogo. Se ainda não leram, toque em "Ler manual". Depois marque a confirmação abaixo para liberar o início e o cronômetro do primeiro turno.`,
+    [
+      {label:'Cancelar', className:'btn-gray', onClick: renderStart},
+      {label:'Ler manual', className:'btn-blue', onClick: (marcado)=> abrirManualNaPartida(marcado)},
+      {label:'Iniciar Partida', className:'btn-green', needsCheck:true, onClick: ()=>{
+        iniciarPartida();
+      }}
+    ],
+    {silent:true, check:'Todos os jogadores leram o manual', checked:!!jaLeu}
+  );
+}
+
+// Abre o manual por cima da partida (cronômetro parado) e volta para a confirmação ao fechar
+function abrirManualNaPartida(marcado){
+  showModal(
+    'Manual Oficial: Operação Risco Zero',
+    MANUAL_TEXT,
+    [{label:'⬅ Voltar à confirmação', className:'btn-red', onClick: ()=> confirmStart(marcado)}],
+    {silent:true, wide:true}
+  );
+}
+
+// ---------------- MODAL GENÉRICO (substitui alert/confirm nativos) ----------------
+function showModal(title, message, buttons, opts){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'help-modal-backdrop';
+  backdrop.id = 'genModalBackdrop';
+  if(opts && opts.silent) backdrop.classList.add('silent-blur');
+  if(opts && opts.burn) backdrop.classList.add('burn');
+  if(opts && opts.win) backdrop.classList.add('win');
+  const preChecked = !!(opts && opts.checked);
+  const btnsHtml = buttons.map((b,i)=>`<button class="btn ${b.className||'btn-green'}" data-i="${i}" ${(b.needsCheck && !preChecked)?'disabled':''}>${escapeHtml(b.label)}</button>`).join(' ');
+  const chkHtml = (opts && opts.check) ? `<label class="chk-row"><input type="checkbox" id="mChk" ${preChecked?'checked':''}><span>${escapeHtml(opts.check)}</span></label>` : '';
+  backdrop.innerHTML = `
+    <div class="help-modal" style="max-width:${(opts && opts.wide)?'780px':'520px'};">
+      <h2>${escapeHtml(title)}</h2>
+      <div class="help-body" style="white-space:pre-wrap;">${escapeHtml(message)}</div>
+      ${chkHtml}
+      <div style="text-align:center;margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">${btnsHtml}</div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  if(chkHtml){
+    const box = backdrop.querySelector('#mChk');
+    box.addEventListener('change', ()=>{
+      buttons.forEach((b,i)=>{ if(b.needsCheck) backdrop.querySelector(`[data-i="${i}"]`).disabled = !box.checked; });
+    });
+  }
+  buttons.forEach((b,i)=>{
+    backdrop.querySelector(`[data-i="${i}"]`).onclick = ()=>{
+      const chkEl = backdrop.querySelector('#mChk');
+      const wasChecked = chkEl ? chkEl.checked : false;
+      backdrop.remove();
+      if(b.onClick) b.onClick(wasChecked);
+    };
+  });
+}
+
+// ---------------- TELA DE JOGO ----------------
+function renderGame(){
+  app.innerHTML = `
+  <div class="game-screen">
+    <div class="topbar">
+      <span class="lives" id="lbLives"></span>
+      <span class="deck" id="lbDeck"></span>
+      <span class="timer" id="lbTimer"></span>
+      <button class="btn btn-outline" id="btnPause" style="padding:6px 12px;">Pausar / Ajuda</button>
+      <span class="spacer"></span>
+      <span class="turn" id="lbTurn"></span>
+      <span class="role" id="lbRole"></span>
+    </div>
+    <div class="hazard-bar"></div><div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+    <div class="game-section factory-section">
+      <div class="section-title" id="lbFactory">🏭 FÁBRICA: RISCOS EM ANDAMENTO (MÁXIMO 5)</div>
+      <div class="cards-row factory-row" id="factoryRow"></div>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-green" id="btnApply">Aplicar Medida / Neutralizar</button>
+      <button class="btn btn-blue" id="btnPass">Estudo Técnico (Comprar +1 e Passar)</button>
+      <span class="log" id="lbLog"></span>
+    </div>
+    <div class="game-section hand-section">
+      <div class="section-title" id="lbHand">🛡️ SUAS CARTAS DE SOLUÇÃO</div>
+      <div class="cards-row hand-row" id="handRow"></div>
+    </div>
+  </div>
+  `;
+  const hr = document.getElementById('handRow');
+  hr.addEventListener('wheel', e=>{
+    if(hr.scrollWidth<=hr.clientWidth || Math.abs(e.deltaY)<=Math.abs(e.deltaX)) return;
+    e.preventDefault(); hr.scrollLeft += e.deltaY;
+  }, {passive:false});
+  document.getElementById('btnPause').onclick = pauseGame;
+  document.getElementById('btnApply').onclick = applySolution;
+  document.getElementById('btnPass').onclick = passAction;
+  updateUI();
+}
+
+function updateUI(){
+  const role = S.playerRoles[S.currentPlayer];
+  const lv = document.getElementById('lbLives'); lv.innerHTML = 'Advertências:&nbsp;' + Array.from({length:MAX_WARNINGS},(_,i)=>warnTri(i<S.warnings, i===S.justLit)).join(''); lv.setAttribute('aria-label',`Advertências: ${S.warnings} de ${MAX_WARNINGS}`);
+  document.getElementById('lbFactory').textContent = `🏭 FÁBRICA: RISCOS EM ANDAMENTO (${S.factory.length}/${S.maxFactory})`;
+  document.getElementById('lbDeck').textContent = `🃏 Riscos Ocultos: ${S.riskDeck.length}`;
+  document.getElementById('lbTurn').textContent = `Vez de: ${S.playerNames[S.currentPlayer]}`;
+  const lbRole = document.getElementById('lbRole');
+  lbRole.textContent = `👷 ${role.name}`;
+  lbRole.className = `role ${role.fav}`;
+  document.getElementById('lbLog').textContent = S.logMsg ? `Aviso: ${S.logMsg}` : '';
+
+  const factoryRow = document.getElementById('factoryRow');
+  factoryRow.innerHTML = '';
+  S.factory.forEach((risk, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'risk-card' + (S.selectedRisk===idx ? ' selected':'');
+    const req = risk.required.map(r=>`[${r}]`).join(' + ');
+    const done = risk.applied.map(r=>`[${r}]`).join(' + ');
+    const chips = risk.required.map(r=>`<i class="chip ${r}">${CAT_ICON[r]} ${r}</i>`).join('');
+    const dchips = risk.applied.map(r=>`<i class="chip done">✔ ${r}</i>`).join('');
+    div.innerHTML = `<div class="rc-head"><span class="rc-tri">${RISK_ICON[risk.title]||'⚠️'}</span><b>${escapeHtml(risk.title)}</b></div><p>${escapeHtml(risk.desc)}</p><div class="rc-need"><span class="rc-lbl">Falta:</span>${chips}${dchips?`<div class="rc-applied"><span class="rc-lbl">Aplicado:</span>${dchips}</div>`:''}</div>`;
+    div.onclick = ()=>{ sfx('select'); S.selectedRisk = (S.selectedRisk===idx? null: idx); updateUI(); };
+    factoryRow.appendChild(div);
+  });
+
+  const handRow = document.getElementById('handRow');
+  const prevLeft = (S.handScrollOwner===S.currentPlayer) ? handRow.scrollLeft : 0;
+  S.handScrollOwner = S.currentPlayer;
+  const nHand = S.hands[S.currentPlayer].length;
+  handRow.classList.toggle('dense', nHand>=6);
+  handRow.classList.toggle('packed', nHand>=10);
+  const lbHand = document.getElementById('lbHand');
+  if(lbHand) lbHand.innerHTML = `🛡️ SUAS CARTAS DE SOLUÇÃO <span class="hand-count">(${nHand})${nHand>=6?' ↔':''}</span>`;
+  handRow.innerHTML = '';
+  S.hands[S.currentPlayer].forEach((sol, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'sol-card' + (S.selectedSol===idx ? ' selected':'');
+    div.classList.add('t-'+sol.tag);
+    div.innerHTML = `<span class="ico">${CAT_ICON[sol.tag]}</span><span class="sol-name">${escapeHtml(sol.title)}</span><span class="sol-hint">${escapeHtml(hintOf(sol))}</span><span class="tag">${sol.tag}</span>`;
+    div.onclick = ()=>{ sfx('select'); S.selectedSol = (S.selectedSol===idx? null: idx); updateUI(); };
+    handRow.appendChild(div);
+  });
+  handRow.scrollLeft = prevLeft;
+}
+
+function setLog(msg){ S.logMsg = msg; const el=document.getElementById('lbLog'); if(el) el.textContent = `Aviso: ${msg}`; }
+
+// ---------------- CRONÔMETRO ----------------
+function startTimer(){
+  stopTimer();
+  S.timeLeft = TURN_TIME_LIMIT;
+  tickTimer();
+}
+function stopTimer(){ if(S.timerId){ clearTimeout(S.timerId); S.timerId=null; } }
+function tickTimer(){
+  if(S.paused) return;
+  const lb = document.getElementById('lbTimer');
+  let color = '#2ECC71';
+  if(S.timeLeft<=5) color = '#E74C3C'; else if(S.timeLeft<=10) color = '#F39C12';
+  const bar=document.getElementById('timerFill'); if(bar){ bar.style.width=(S.timeLeft/TURN_TIME_LIMIT*100)+'%'; bar.style.background=color; }
+  if(S.timeLeft>0 && S.timeLeft<=5) sfx('tick');
+  if(lb){ lb.textContent = `⏱️ TEMPO: ${String(S.timeLeft).padStart(2,'0')}s`; lb.style.color = color; }
+  if(S.timeLeft>0){
+    S.timeLeft -= 1;
+    S.timerId = setTimeout(tickTimer, 1000);
+  } else {
+    timeOut();
+  }
+}
+function timeOut(){
+  sfx('timeout');
+  const nome = S.playerNames[S.currentPlayer];
+  setLog(`⏰ TEMPO ESGOTADO! ${nome} perdeu a vez de agir.`);
+  if(S.solutionDeck.length){ S.hands[S.currentPlayer].push(S.solutionDeck.pop()); }
+  contaPulo(nome, 'vez'); // tempo esgotado conta como passar a vez (só na fase final)
+  endTurn();
+}
+
+// ---------------- PAUSA / AJUDA ----------------
+function pauseGame(){
+  if(S.paused) return;
+  S.paused = true;
+  stopTimer(); sfx('pause'); duck(true);
+  const backdrop = document.createElement('div');
+  backdrop.className = 'help-modal-backdrop';
+  backdrop.id = 'pauseBackdrop';
+  backdrop.innerHTML = `
+    <div class="help-modal">
+      <h2>JOGO PAUSADO</h2>
+      <p style="text-align:center;color:var(--muted);margin-top:-8px;">Central de Ajuda Rápida — o cronômetro está parado</p>
+      <div class="help-body">${escapeHtml(HELP_TEXT)}</div>
+      <div class="pause-actions">
+        <button class="btn btn-green" id="btnResume">Fechar e Retomar Partida</button>
+        <button class="btn btn-red" id="btnQuit">Sair do Jogo</button>
+      </div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  document.getElementById('btnResume').onclick = resumeGame;
+  document.getElementById('btnQuit').onclick = ()=> showModal('Sair do jogo?', 'A partida atual será encerrada e a equipe volta para o menu inicial.', [
+    {label:'Continuar jogando', className:'btn-gray'},
+    {label:'Sair do Jogo', className:'btn-red', onClick: ()=>{ const b=document.getElementById('pauseBackdrop'); if(b) b.remove(); S.paused=false; duck(false); renderStart(); }}
+  ]);
+}
+function resumeGame(){
+  const b = document.getElementById('pauseBackdrop');
+  if(b) b.remove();
+  S.paused = false; sfx('resume'); duck(false);
+  tickTimer();
+}
+
+// ---------------- AÇÕES ----------------
+// Mostra um aviso de erro e mantém o cronômetro parado até o jogador fechá-lo
+function errorModal(title, msg){
+  sfx('error');
+  const wasRunning = !!S.timerId;
+  if(wasRunning){ stopTimer(); S.timeLeft += 1; } // devolve o segundo já descontado para não perder tempo
+  showModal(title, msg + '\n\nO cronômetro está pausado até você fechar este aviso.', [
+    {label:'OK', onClick: ()=>{ if(wasRunning && !S.paused && !S.timerId) tickTimer(); }}
+  ]);
+}
+
+function applySolution(){
+  if(S.selectedRisk===null || S.selectedSol===null){
+    errorModal('Seleção Incompleta', 'Selecione 1 Risco na Fábrica e 1 Solução da sua mão!');
+    return;
+  }
+  const risk = S.factory[S.selectedRisk];
+  const sol = S.hands[S.currentPlayer][S.selectedSol];
+  const isJoker = sol.tag==='CORINGA';
+  const okRisk = isJoker || sol.solves.includes(risk.id);
+  const okCat = isJoker || risk.required.includes(sol.tag);
+
+  if(okRisk && okCat){
+    let removedTag;
+    if(isJoker){
+      removedTag = risk.required.shift();
+    } else {
+      const i = risk.required.indexOf(sol.tag);
+      risk.required.splice(i,1);
+      removedTag = sol.tag;
+    }
+    risk.applied.push(removedTag);
+    S.hands[S.currentPlayer].splice(S.selectedSol,1);
+
+    if(isResolved(risk)){
+      S.factory.splice(S.selectedRisk,1);
+      setLog(`Perigo '${risk.title}' completamente NEUTRALIZADO!`); sfx('neutral');
+    } else {
+      setLog(`Medida aplicada em '${risk.title}'. Ainda requer mais ações!`); sfx('apply');
+    }
+    if(S.solutionDeck.length){ S.hands[S.currentPlayer].push(S.solutionDeck.pop()); }
+    contaPulo(S.playerNames[S.currentPlayer], 'medida');
+    endTurn();
+  } else if(!okRisk){
+    errorModal('Incompatível', `Esta carta não resolve este risco.\nA dica dela diz -> ${hintOf(sol)}.`);
+  } else {
+    errorModal('Incompatível', `Este risco já recebeu a medida da categoria [${sol.tag}]. Escolha uma carta de outra categoria que ele ainda precise.`);
+  }
+}
+
+// Fase final: baralho de riscos esgotado e ainda há riscos pendentes na fábrica.
+// Fase final: DOIS contadores da equipe, ambos zerados quando vem a advertência (colapso):
+//  - passar a vez (Estudo Técnico): tolerância normal (2/2/3/3 conforme o nº de jogadores)
+//  - aplicar medida: tolerância em dobro (4/4/6/6)
+function contaPulo(nome, tipo){
+  S.passWarn = false; S.passWarnTipo = null;
+  if(S.riskDeck.length===0 && S.factory.length>0){
+    const tolV = END_PASS_TOLERANCE[S.numPlayers], tolM = END_MEASURE_TOLERANCE[S.numPlayers];
+    if(tipo==='medida') S.endMeasures += 1; else S.endPasses += 1;
+    if(S.endPasses > tolV || S.endMeasures > tolM){
+      S.passWarn = true; S.passWarnTipo = tipo;
+      S.endPasses = 0; S.endMeasures = 0; // colapso: os dois contadores zeram
+    } else {
+      const quase = (tipo==='medida' ? S.endMeasures===tolM : S.endPasses===tolV);
+      setLog(`${S.logMsg ? S.logMsg+' ' : ''}Pulos nesta fase: passar a vez ${S.endPasses} de ${tolV} | aplicar medida ${S.endMeasures} de ${tolM}.${quase?' O próximo pulo desse tipo gera advertência.':''}`);
+    }
+  }
+}
+
+function passAction(){
+  sfx('draw');
+  const nome = S.playerNames[S.currentPlayer];
+  if(S.solutionDeck.length){
+    S.hands[S.currentPlayer].push(S.solutionDeck.pop());
+    setLog(`${nome} reuniu novos recursos de proteção.`);
+  } else {
+    setLog('Baralho de Soluções esgotado!');
+  }
+  contaPulo(nome, 'vez');
+  endTurn();
+}
+
+// ---------------- FIM DE TURNO ----------------
+// Quantas cartas nas mãos dos jogadores resolvem este risco (Coringa não conta: serve para todos)
+function riskCoverage(risk){
+  return S.hands.reduce((n,h)=> n + h.filter(c=> c.tag!=='CORINGA' && c.solves.includes(risk.id) && risk.required.includes(c.tag)).length, 0);
+}
+
+function endTurn(){
+  stopTimer();
+  S.selectedRisk = null;
+  S.selectedSol = null;
+
+  if(S.riskDeck.length===0 && S.factory.length===0){
+    updateUI(); musicStop(); sfx('win'); startVictory();
+    showModal('Vitória Total!', 'A equipe neutralizou todos os perigos em tempo recorde!\n\nRISCO ZERO!', [{label:'Voltar ao menu inicial', className:'btn-gray', onClick: renderStart}, {label:'Jogar novamente', className:'btn-green', onClick: jogarNovamente}], {win:true});
+    return;
+  }
+
+  function afterOccurrence(){
+    S.justLit = null;
+    if(S.warnings>=MAX_WARNINGS){
+      updateUI(); musicStop(); sfx('lose');
+      showModal('Interdição!', 'A fábrica foi interditada pela fiscalização devido a múltiplas advertências.', [{label:'Voltar ao menu inicial', className:'btn-gray', onClick: renderStart}, {label:'Jogar novamente', className:'btn-green', onClick: jogarNovamente}], {burn:true});
+      return;
+    }
+    S.currentPlayer = (S.currentPlayer+1) % S.numPlayers;
+    updateUI();
+    startTimer(); setTimeout(()=>sfx('turn'),800);
+  }
+
+  if(S.riskDeck.length){
+    const newRisk = S.riskDeck.pop();
+    if(S.factory.length < S.maxFactory){
+      S.factory.push(newRisk);
+      setTimeout(()=>sfx('alert'),350);
+      afterOccurrence();
+    } else {
+      // 6º risco: advertência + o sistema remove o risco com MENOS cartas de solução nas mãos da equipe
+      const all = [...S.factory, newRisk];
+      const scores = all.map(riskCoverage);
+      const min = Math.min(...scores);
+      const cand = all.filter((_,i)=>scores[i]===min);
+      const removed = cand[Math.floor(Math.random()*cand.length)];
+      if(removed!==newRisk){
+        S.factory.splice(S.factory.indexOf(removed),1);
+        S.factory.push(newRisk);
+      }
+      S.warnings += 1; S.justLit = S.warnings-1;
+      const fim = S.warnings>=MAX_WARNINGS;
+      sfx('collapse'); if(fim){ startFire(); sfx('fire'); } document.body.classList.add('shake'); setTimeout(()=>document.body.classList.remove('shake'),600);
+      updateUI();
+      const msg = `A fábrica já tinha ${S.maxFactory} riscos e o ${S.maxFactory+1}º apareceu!\nO sistema removeu: '${removed.title}' (o risco que a equipe tem menos cartas para resolver).\n+1 advertência (${S.warnings} de ${MAX_WARNINGS}).`;
+      showModal(fim ? 'Colapso Final!' : 'Colapso Operacional!', msg, [{label:'OK', onClick: afterOccurrence}], {burn: fim});
+    }
+  } else if(S.passWarn){
+    // Fase final: passou a vez além da tolerância sem resolver risco pendente
+    S.passWarn = false;
+    const nome = S.playerNames[S.currentPlayer];
+    const porMedida = S.passWarnTipo==='medida';
+    const tol = porMedida ? END_MEASURE_TOLERANCE[S.numPlayers] : END_PASS_TOLERANCE[S.numPlayers];
+    S.warnings += 1; S.justLit = S.warnings-1;
+    const fim = S.warnings>=MAX_WARNINGS;
+    sfx('collapse'); if(fim){ startFire(); sfx('fire'); } document.body.classList.add('shake'); setTimeout(()=>document.body.classList.remove('shake'),600);
+    updateUI();
+    const msg = `Os riscos acabaram no baralho, mas ainda há perigos pendentes na fábrica.\n${nome} ${porMedida?'aplicou uma medida':'passou a vez'}, e a tolerância de ${tol} pulos desse tipo já foi usada.\n+1 advertência (${S.warnings} de ${MAX_WARNINGS}). Os dois contadores de pulos foram zerados e o jogo continua.`;
+    showModal(fim ? 'Advertência Final!' : 'Advertência!', msg, [{label:'OK', onClick: afterOccurrence}], {burn: fim});
+  } else {
+    afterOccurrence();
+  }
+}
+
+/* ===== VITÓRIA: fogos de artifício, holofotes, EPIs caindo e confete (canvas) ===== */
+let VIC=null;
+function stopVictory(){
+  if(VIC){ if(VIC.raf) cancelAnimationFrame(VIC.raf); if(VIC.onResize) removeEventListener('resize',VIC.onResize); VIC=null; }
+  document.querySelectorAll('.victory').forEach(x=>x.remove());
+}
+function startVictory(){
+  stopVictory();
+  const wrap=document.createElement('div'); wrap.className='victory';
+  wrap.innerHTML='<div class="rays"></div><i class="aura"></i><i class="beam l"></i><i class="beam r"></i><canvas></canvas>';
+  document.body.appendChild(wrap);
+  const me=VIC={};
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return; // só o brilho, sem animação
+  const cv=wrap.querySelector('canvas'), cx=cv.getContext('2d');
+  let W=0,H=0;
+  const fit=()=>{ const d=Math.min(window.devicePixelRatio||1,2); W=innerWidth; H=innerHeight; cv.width=W*d; cv.height=H*d; cx.setTransform(d,0,0,d,0,0); };
+  fit(); me.onResize=fit; addEventListener('resize',fit);
+  const COL=['#FFC400','#12C271','#FF7A00','#3BA4FF','#ffffff','#FF4D4D','#C77DFF','#FFE066'];
+  const CONF=['#FFC400','#12C271','#FF7A00','#1D7BE6','#F2F0E6','#D62828'];
+  const EPI=['⛑️','🦺','🥽','🧤','🦻','🥾','✅','🛡️','⭐','🏆','👷'];
+  const R=(a,b)=>a+Math.random()*(b-a), pick=a=>a[(Math.random()*a.length)|0];
+  const G=.18, rockets=[], sparks=[], flashes=[], conf=[], rings=[], gears=[], queue=[];
+  let sim=0, last=performance.now(), nextLaunch=0, rain=0, gearAcc=0, nextFinale=4800;
+  const later=(ms,fn)=>queue.push({at:sim+ms,fn});
+
+  function launch(){
+    const x=R(W*.12,W*.88), ty=R(H*.13,H*.48), v0=Math.sqrt(2*G*(H-ty));
+    rockets.push({x,y:H+8,px:x,py:H+8,vx:R(-.5,.5),vy:-v0,c:pick(COL)});
+    sfx('whistle');
+  }
+  function ring(x,y,c,v){ rings.push({x,y,r:8,v:v||16,life:1,c}); }
+  function burst(x,y,c){
+    const k=Math.max(.7,Math.min(1.6,Math.min(W,H)/560)), kind=pick(['peony','peony','ring','willow','double','star','glitter','glitter']);
+    const add=(n,spd,col,o)=>{ if(sparks.length>1500) return; for(let i=0;i<n;i++){ const a=(i/n)*Math.PI*2+R(-.04,.04), s=spd*k*(o&&o.spread?R(.35,1):R(.94,1.06));
+      sparks.push({x,y,px:x,py:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:(o&&o.decay)||R(.009,.015),g:(o&&o.g)||G*.55,c:col,w:(o&&o.w)||2,tw:!!(o&&o.tw)}); } };
+    if(kind==='peony') add(80,R(4.6,5.6),c,{spread:true});
+    else if(kind==='ring') add(54,5.2,c);
+    else if(kind==='willow') add(64,4.4,'#FFD34D',{decay:.006,g:G*.8,w:2.2,tw:true});
+    else if(kind==='glitter'){ add(70,R(4.2,5),'#FFF1B8',{spread:true,decay:.007,g:G*.75,w:1.8,tw:true}); add(30,3,c,{spread:true}); }
+    else if(kind==='double'){ add(46,5.6,c); add(34,3,pick(COL)); }
+    else { for(let i=0;i<5;i++){ const a0=-Math.PI/2+i*(Math.PI*2/5), a1=a0+Math.PI*2/5; for(let j=0;j<12;j++){ const f=j/12, a=a0+(a1-a0)*f, r=1-.55*Math.sin(f*Math.PI), s=5.2*k*(.45+.55*r); sparks.push({x,y,px:x,py:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:.013,g:G*.4,c:'#FFE066',w:2.2,tw:false}); } } }
+    if(kind!=='willow' && kind!=='glitter') add(14,2.2,'#ffffff',{spread:true,decay:.02});
+    flashes.push({x,y,life:1});
+    ring(x,y,c,7);
+    sfx('boom');
+  }
+  function cannon(side){
+    sfx('pop');
+    for(let i=0;i<70;i++){
+      const a=(side<0?R(-80,-55):R(-125,-100))*Math.PI/180, s=R(11,19)*Math.max(.7,Math.min(1.3,H/800));
+      conf.push({x:side<0?-6:W+6,y:H+6,vx:Math.cos(a)*s,vy:Math.sin(a)*s,w:R(6,11),h:R(4,8),r:R(0,6.28),vr:R(-.3,.3),f:R(0,6.28),vf:R(.08,.22),c:pick(CONF),drag:.985,g:.26,term:R(2.2,3.8)});
+    }
+  }
+  function drop(){ if(conf.length>260) return;
+    conf.push({x:R(0,W),y:-12,vx:R(-.6,.6),vy:R(1,2.4),w:R(6,10),h:R(4,7),r:R(0,6.28),vr:R(-.2,.2),f:R(0,6.28),vf:R(.06,.16),c:pick(CONF),drag:.995,g:.03,term:R(1.6,3)}); }
+  function gear(){ if(gears.length>24) return;
+    const s=R(28,46)*Math.max(.8,Math.min(1.2,Math.min(W,H)/700));
+    gears.push({x:R(W*.04,W*.96),y:-50,vx:R(-.4,.4),vy:R(1.2,2.4),s,r:R(-.5,.5),vr:R(-.03,.03),sw:R(0,6.28),ch:pick(EPI)}); }
+  function finale(){
+    for(let i=0;i<5;i++) later(i*170,launch);
+    later(300,()=>{cannon(-1);cannon(1);});
+    ring(W/2,H*.4,'#12C271',18); later(140,()=>ring(W/2,H*.4,'#FFC400',18)); later(280,()=>ring(W/2,H*.4,'#ffffff',18));
+    for(let i=0;i<6;i++) later(i*140,gear);
+  }
+
+  // abertura: onda de choque + salva de fogos + canhões de confete + chuva de EPIs
+  ring(W/2,H*.4,'#12C271',20); later(120,()=>ring(W/2,H*.4,'#FFC400',20)); later(240,()=>ring(W/2,H*.4,'#ffffff',20));
+  launch(); later(220,launch); later(480,launch); later(350,()=>{cannon(-1);cannon(1);});
+  for(let i=0;i<8;i++) later(400+i*130,gear);
+
+  function frame(now){
+    if(VIC!==me) return;
+    const dt=Math.min((now-last)/16.667,3); last=now; sim+=dt*16.667;
+    for(let i=queue.length-1;i>=0;i--) if(queue[i].at<=sim){ const q=queue.splice(i,1)[0]; q.fn(); }
+    if(sim>=nextLaunch){ launch(); if(Math.random()<.35) later(180,launch); nextLaunch=sim+R(420,900); }
+    if(sim>=nextFinale){ finale(); nextFinale=sim+R(5500,7500); }
+    rain+=dt*.7; while(rain>=1){ drop(); rain--; }
+    gearAcc+=dt*.05; while(gearAcc>=1){ gear(); gearAcc--; }
+
+    cx.clearRect(0,0,W,H);
+    cx.globalCompositeOperation='lighter'; cx.lineCap='round';
+    for(let i=rings.length-1;i>=0;i--){ const o=rings[i]; o.r+=o.v*dt; o.v*=Math.pow(.955,dt); o.life-=.017*dt; if(o.life<=0){rings.splice(i,1);continue;}
+      cx.globalAlpha=Math.min(1,o.life*.9); cx.strokeStyle=o.c; cx.lineWidth=1+7*o.life; cx.beginPath(); cx.arc(o.x,o.y,o.r,0,6.2832); cx.stroke(); }
+    for(let i=flashes.length-1;i>=0;i--){ const f=flashes[i]; f.life-=.09*dt; if(f.life<=0){flashes.splice(i,1);continue;}
+      const g=cx.createRadialGradient(f.x,f.y,0,f.x,f.y,140*f.life+30); g.addColorStop(0,`rgba(255,240,190,${.75*f.life})`); g.addColorStop(1,'rgba(255,200,80,0)'); cx.globalAlpha=1; cx.fillStyle=g; cx.beginPath(); cx.arc(f.x,f.y,170,0,6.3); cx.fill(); }
+    for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i]; r.px=r.x; r.py=r.y; r.vy+=G*dt; r.x+=r.vx*dt; r.y+=r.vy*dt;
+      if(sparks.length<1500) sparks.push({x:r.x,y:r.y,px:r.x,py:r.y,vx:R(-.3,.3),vy:R(.2,.9),life:.6,decay:.05,g:.03,c:'#ffd27a',w:1.7,tw:false});
+      cx.globalAlpha=.9; cx.strokeStyle='#ffe9a8'; cx.lineWidth=2.4; cx.beginPath(); cx.moveTo(r.x-r.vx*4,r.y-r.vy*4); cx.lineTo(r.x,r.y); cx.stroke();
+      if(r.vy>=-.6){ rockets.splice(i,1); burst(r.x,r.y,r.c); } }
+    for(let i=sparks.length-1;i>=0;i--){ const p=sparks[i]; p.life-=p.decay*dt; if(p.life<=0){sparks.splice(i,1);continue;}
+      p.px=p.x; p.py=p.y; const dr=Math.pow(.983,dt); p.vx*=dr; p.vy=p.vy*dr+p.g*dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+      let al=Math.min(1,p.life*1.4); if(p.tw && p.life<.65 && Math.random()<.45) al*=.15;
+      cx.globalAlpha=al; cx.strokeStyle=p.c; cx.lineWidth=p.w*(.5+p.life*.5); cx.beginPath(); cx.moveTo(p.px,p.py); cx.lineTo(p.x,p.y); cx.stroke(); }
+    cx.globalCompositeOperation='source-over';
+    for(let i=conf.length-1;i>=0;i--){ const c=conf[i]; c.vx*=Math.pow(c.drag,dt); c.vy=Math.min(c.vy*Math.pow(c.drag,dt)+c.g*dt, c.term); c.f+=c.vf*dt; c.r+=c.vr*dt;
+      c.x+=(c.vx+Math.sin(c.f*.7)*.7)*dt; c.y+=c.vy*dt; if(c.y>H+16){conf.splice(i,1);continue;}
+      cx.save(); cx.translate(c.x,c.y); cx.rotate(c.r); cx.scale(1,Math.cos(c.f)); cx.globalAlpha=.95; cx.fillStyle=c.c; cx.fillRect(-c.w/2,-c.h/2,c.w,c.h); cx.restore(); }
+    cx.textAlign='center'; cx.textBaseline='middle';
+    for(let i=gears.length-1;i>=0;i--){ const e=gears[i]; e.sw+=.04*dt; e.r+=e.vr*dt; e.x+=(e.vx+Math.sin(e.sw)*.7)*dt; e.y+=e.vy*dt; if(e.y>H+60){gears.splice(i,1);continue;}
+      cx.save(); cx.translate(e.x,e.y); cx.rotate(e.r+Math.sin(e.sw)*.35); cx.globalAlpha=.97; cx.shadowColor='rgba(255,210,80,.9)'; cx.shadowBlur=14;
+      cx.font=`${e.s|0}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; cx.fillText(e.ch,0,0); cx.restore(); }
+    cx.globalAlpha=1;
+    me.raf=requestAnimationFrame(frame);
+  }
+  me.raf=requestAnimationFrame(frame);
+}
+
+function startFire(){
+  stopFire(); const f=document.createElement('div'); f.className='fire'; let h='';
+  for(let i=0;i<26;i++){ const w=90+Math.random()*130; h+=`<i class="flame" style="--x:${(i/25*100).toFixed(1)}%;--w:${w|0}px;--h:${(w*(1.6+Math.random()*1.4))|0}px;--d:${(.35+Math.random()*.5).toFixed(2)}s;animation-delay:-${Math.random().toFixed(2)}s"></i>`; }
+  for(let i=0;i<30;i++) h+=`<b class="ember" style="--x:${(Math.random()*100).toFixed(1)}%;--d:${(2+Math.random()*3).toFixed(1)}s;--dx:${((Math.random()-.5)*160)|0}px;animation-delay:-${(Math.random()*4).toFixed(1)}s"></b>`;
+  f.innerHTML=h; document.body.appendChild(f);
+}
+function stopFire(){ document.querySelectorAll('.fire').forEach(x=>x.remove()); }
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+renderStart();
+</script>
+</body>
+</html>
